@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>eNSP 自动化配置助手</title>
+    <link href="/static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/vendor/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<body>
+
+<div class="app-layout">
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-network-wired"></i>
+            <span>eNSP 配置助手</span>
+        </div>
+
+        <div class="sidebar-body">
+            <div class="nav-block">
+                <div class="nav-block-title"><i class="fas fa-palette"></i> 主题风格</div>
+                <div class="nav-block-body">
+                    <div class="theme-selector">
+                        <div class="theme-btn active" data-theme="dark-blue" onclick="switchTheme('dark-blue')" title="深蓝"></div>
+                        <div class="theme-btn" data-theme="light" onclick="switchTheme('light')" title="明亮"></div>
+                        <div class="theme-btn" data-theme="tech-green" onclick="switchTheme('tech-green')" title="科技绿"></div>
+                        <div class="theme-btn" data-theme="dark-purple" onclick="switchTheme('dark-purple')" title="暗紫"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-block">
+                <div class="nav-block-title"><i class="fas fa-file-import"></i> 拓扑导入</div>
+                <div class="nav-block-body">
+                    <input class="form-control form-control-sm" type="file" id="topoFile" accept=".topo">
+                    <button class="btn btn-primary btn-sm w-100" onclick="uploadTopo()">
+                        <i class="fas fa-upload"></i> 解析文件
+                    </button>
+                </div>
+            </div>
+
+            <div class="nav-block">
+                <div class="nav-block-title"><i class="fas fa-server"></i> 目标设备</div>
+                <div class="nav-block-body">
+                    <select class="form-select form-select-sm" id="deviceSelect">
+                        <option value="">请先解析拓扑...</option>
+                    </select>
+                    <button class="btn btn-outline-secondary btn-sm w-100" id="readInterfacesBtn" onclick="manualLoadInterfaces()" disabled>
+                        <i class="fas fa-plug"></i> 读取接口
+                    </button>
+                    <button class="btn btn-outline-info btn-sm w-100" id="readConfigBtn" onclick="readDeviceConfig()" disabled>
+                        <i class="fas fa-file-code"></i> 读取配置
+                    </button>
+                    <button class="btn btn-outline-success btn-sm w-100" id="saveConfigBtn" onclick="saveDeviceConfig()" disabled>
+                        <i class="fas fa-floppy-disk"></i> 保存配置到设备
+                    </button>
+                    <div id="interfaceLoadStatus" class="interface-status"></div>
+                </div>
+            </div>
+
+            <div class="nav-block">
+                <div class="nav-block-title"><i class="fas fa-cogs"></i> 配置类型</div>
+                <div class="nav-block-body">
+                    <select class="form-select form-select-sm" id="techSelect" onchange="changeTech()">
+                        <option value="interface_ip">📌 接口 IP 地址</option>
+                        <option value="vlan">🔌 VLAN</option>
+                        <option value="dhcp">🌐 DHCP</option>
+                        <option value="virtual_interface">🔄 虚拟接口</option>
+                        <option value="eth_trunk">🔗 Eth-Trunk</option>
+                        <option value="stp">🌲 生成树</option>
+                        <option value="static_route">➡️ 静态路由</option>
+                        <option value="rip">🗺️ RIP</option>
+                        <option value="ospf">🌍 OSPF</option>
+                        <option value="bgp">🌎 BGP</option>
+                        <option value="isis">📡 IS-IS</option>
+                        <option value="acl">🛡️ ACL</option>
+                        <option value="nat">🌊 NAT</option>
+                        <option value="vrrp">⚡ VRRP</option>
+                        <option value="wlan">📶 WLAN</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="nav-block">
+                <div class="nav-block-title collapsible" onclick="toggleBlock('batchConfigBlock')">
+                    <i class="fas fa-sync-alt"></i> 批量配置
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div class="nav-block-body collapse" id="batchConfigBlock">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="batchMode" onclick="toggleBatchMode()">
+                        <label class="form-check-label" for="batchMode">启用批量配置模式</label>
+                    </div>
+                    <div id="batchDevicesList" class="item-list">
+                        <p class="text-muted text-center small">选择设备后将显示在此处</p>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm w-100" onclick="batchPushConfig()" disabled id="batchPushBtn">
+                        <i class="fas fa-play"></i> 批量执行配置
+                    </button>
+                </div>
+            </div>
+
+            <div class="nav-block">
+                <div class="nav-block-title collapsible" onclick="toggleBlock('statusMonitorBlock')">
+                    <i class="fas fa-heartbeat"></i> 设备状态监控
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div class="nav-block-body collapse" id="statusMonitorBlock">
+                    <button class="btn btn-outline-info btn-sm w-100" onclick="checkAllDevicesStatus()">
+                        <i class="fas fa-sync"></i> 检查所有设备状态
+                    </button>
+                    <div id="deviceStatusList" class="item-list">
+                        <p class="text-muted text-center small">点击上方按钮检查设备状态</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-block">
+                <div class="nav-block-title collapsible" onclick="toggleBlock('templateBlock')">
+                    <i class="fas fa-save"></i> 模板管理
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div class="nav-block-body collapse" id="templateBlock">
+                    <input type="text" id="templateName" placeholder="模板名称" class="form-control form-control-sm">
+                    <div class="btn-group btn-group-sm w-100">
+                        <button class="btn btn-outline-primary" onclick="saveTemplate()"><i class="fas fa-save"></i> 保存</button>
+                        <button class="btn btn-outline-secondary" onclick="loadTemplates()"><i class="fas fa-folder-open"></i> 加载</button>
+                    </div>
+                    <div id="templatesList" class="item-list">
+                        <p class="text-muted text-center small">点击"加载"查看模板</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-block">
+                <div class="nav-block-title collapsible" onclick="toggleBlock('historyBlock')">
+                    <i class="fas fa-history"></i> 操作历史
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div class="nav-block-body collapse" id="historyBlock">
+                    <div class="btn-group btn-group-sm w-100">
+                        <button class="btn btn-outline-secondary" onclick="loadHistory()"><i class="fas fa-list"></i> 加载</button>
+                        <button class="btn btn-outline-danger" onclick="clearHistory()"><i class="fas fa-trash"></i> 清空</button>
+                    </div>
+                    <div id="historyList" class="item-list">
+                        <p class="text-muted text-center small">点击"加载"查看历史</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-area">
+        <div class="main-header">
+            <div class="step-bar">
+                <div class="step-item" id="step-1">
+                    <span class="step-dot">1</span>
+                    <span class="step-text">导入拓扑</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item" id="step-2">
+                    <span class="step-dot">2</span>
+                    <span class="step-text">选择配置</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item" id="step-3">
+                    <span class="step-dot">3</span>
+                    <span class="step-text">执行配置</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-body">
+            <div class="config-panel">
+                <div class="panel-header">
+                    <span class="panel-title"><i class="fas fa-sliders-h"></i> 配置参数</span>
+                    <div style="display:flex;gap:6px;">
+                        <button class="btn btn-danger btn-sm" onclick="pushConfig()">
+                            <i class="fas fa-paper-plane"></i> 生成并写入设备
+                        </button>
+                    </div>
+                </div>
+                <div id="formArea" class="form-grid">
+                    <div class="form-field">
+                        <label for="p_intf_name">接口名</label>
+                        <input type="text" id="p_intf_name" placeholder="如 GigabitEthernet0/0/0">
+                    </div>
+                    <div class="form-field">
+                        <label for="p_ip_address">IP 地址</label>
+                        <input type="text" id="p_ip_address" placeholder="如 192.168.1.1">
+                    </div>
+                    <div class="form-field">
+                        <label for="p_mask">子网掩码</label>
+                        <input type="text" id="p_mask" placeholder="如 255.255.255.0 或 24">
+                    </div>
+                </div>
+            </div>
+
+            <div class="terminal-panel">
+                <div class="panel-header">
+                    <span class="panel-title"><i class="fas fa-terminal"></i> 执行终端</span>
+                    <div style="display:flex;gap:6px;">
+                        <button class="btn btn-outline-light btn-sm" onclick="switchPanel('terminal')" id="btnTerminal" title="终端">
+                            <i class="fas fa-terminal"></i>
+                        </button>
+                        <button class="btn btn-outline-light btn-sm" onclick="switchPanel('editor')" id="btnEditor" title="配置编辑器">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-outline-light btn-sm" onclick="document.getElementById('terminal').innerHTML='等待执行...'">
+                            <i class="fas fa-eraser"></i>
+                        </button>
+                    </div>
+                </div>
+                <pre id="terminal" class="terminal-output">等待执行...</pre>
+                <div id="configEditor" class="config-editor" style="display:none;">
+                    <textarea id="configTextarea" class="config-textarea" placeholder="# 在此编辑设备配置&#10;# 读取配置后可修改，点击"推送配置"写入设备&#10;system-view&#10;sysname MyDevice"></textarea>
+                    <div class="editor-actions">
+                        <button class="btn btn-primary btn-sm" onclick="pushCustomConfig()">
+                            <i class="fas fa-paper-plane"></i> 推送配置
+                        </button>
+                        <button class="btn btn-outline-light btn-sm" onclick="readDeviceConfig()">
+                            <i class="fas fa-sync"></i> 刷新
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <aside class="ai-panel" id="aiPanel">
+        <div class="ai-panel-header">
+            <span><i class="fas fa-robot"></i> AI 助手</span>
+            <button class="ai-panel-close" onclick="toggleAIPanel()" title="收起"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="ai-panel-body">
+            <div class="ai-config-section" id="aiConfigSection">
+                <div class="ai-config-toggle" onclick="toggleAIConfig()">
+                    <i class="fas fa-cog"></i> 模型配置
+                    <i class="fas fa-chevron-down ai-config-arrow" id="aiConfigArrow"></i>
+                </div>
+                <div class="ai-config-form" id="aiConfigForm">
+                    <div class="ai-form-group">
+                        <label>API 提供商</label>
+                        <select id="aiProvider" onchange="onAIProviderChange()">
+                            <option value="deepseek">DeepSeek</option>
+                            <option value="openai">OpenAI</option>
+                            <option value="qwen">通义千问</option>
+                            <option value="zhipu">智谱 GLM</option>
+                            <option value="moonshot">Moonshot</option>
+                            <option value="ollama">Ollama (本地)</option>
+                            <option value="custom">自定义</option>
+                        </select>
+                    </div>
+                    <div class="ai-form-group">
+                        <label>API Base URL</label>
+                        <input type="text" id="aiBaseUrl" placeholder="https://api.deepseek.com/v1">
+                    </div>
+                    <div class="ai-form-group">
+                        <label>API Key</label>
+                        <div style="position:relative;">
+                            <input type="password" id="aiApiKey" placeholder="sk-xxxxxxxx">
+                            <button class="ai-key-toggle" onclick="toggleAIKeyVisibility()" title="显示/隐藏"><i class="fas fa-eye" id="aiKeyEyeIcon"></i></button>
+                        </div>
+                    </div>
+                    <div class="ai-form-group">
+                        <label>模型名称</label>
+                        <input type="text" id="aiModel" placeholder="deepseek-chat">
+                    </div>
+                    <button class="ai-save-btn" onclick="saveAIConfig()"><i class="fas fa-check"></i> 保存配置</button>
+                </div>
+            </div>
+            <div class="ai-chat-area" id="aiChatArea">
+                <div class="ai-chat-messages" id="aiChatMessages">
+                    <div class="ai-welcome">
+                        <i class="fas fa-robot" style="font-size:32px;color:var(--primary);margin-bottom:12px;"></i>
+                        <div style="font-weight:600;margin-bottom:6px;">AI 网络配置助手</div>
+                        <div style="font-size:12px;color:var(--ai-text-dim);">描述你的配置需求，AI将生成华为设备命令</div>
+                    </div>
+                </div>
+                <div class="ai-chat-input-area">
+                    <textarea id="aiChatInput" placeholder="描述配置需求，如：配置VLAN10，将GE0/0/1设为Access口..." rows="3"></textarea>
+                    <div class="ai-chat-actions">
+                        <button class="ai-send-btn" onclick="sendAIMessage()" id="aiSendBtn"><i class="fas fa-paper-plane"></i> 发送</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <button class="ai-fab" id="aiFab" onclick="toggleAIPanel()" title="AI 助手">
+        <i class="fas fa-robot"></i>
+    </button>
+
+</div>
+
+<script src="/static/js/script.js"></script>
+</body>
+</html>

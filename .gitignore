@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+*.pyc
+
+# PyInstaller
+*.spec
+*.manifest
+*.exe
+
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+*.log.*
+
+# Project specific
+data/
+*.topo
+temp/
+tmp/
+
+# 测试文件
+test_*.py
+*_test.py
