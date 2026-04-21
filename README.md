@@ -109,7 +109,6 @@ eNSP_AutoConfig/
 ├── history_manager.py     # 历史记录管理
 ├── build.py               # PyInstaller 打包脚本
 ├── requirements.txt       # Python 依赖
-├── .gitignore            # Git 忽略配置
 ├── LICENSE              # MIT 许可证
 ├── README.md            # 项目文档
 ├── templates/
