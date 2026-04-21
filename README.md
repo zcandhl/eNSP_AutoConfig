@@ -4,7 +4,7 @@
 
 **华为 eNSP 网络设备自动化配置助手**
 
-[![Version](https://img.shields.io/badge/version-1.2-blue.svg)](https://github.com/zcandhl/eNSP_AutoConfig)
+[![Version](https://img.shields.io/badge/version-1.0-blue.svg)](https://github.com/zcandhl/eNSP_AutoConfig)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8+-yellow.svg)](https://www.python.org)
 
